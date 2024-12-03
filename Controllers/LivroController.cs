@@ -24,18 +24,54 @@ namespace Bibliotec_mvc.Controllers
         public IActionResult Index()
         {
             ViewBag.admin = HttpContext.Session.GetString("Admin")!;
-            
+
             //criar uma lista de livros
-            List <Livro> listaLivros = context.Livro.ToList();
+            List<Livro> listaLivros = context.Livro.ToList();
 
             //verificar se o livro tem reserva ou não
             var livrosReservados = context.LivroReserva.ToDictionary(livro => livro.LivroID, livror => livror.DtReserva);
 
             ViewBag.Livros = listaLivros;
-          ViewBag.LivrosComReserva = livrosReservados;
+            ViewBag.LivrosComReserva = livrosReservados;
 
             return View();
         }
+
+        // metodo que retorna a tela de cadastro
+        [Route("Cadastro")]
+        public IActionResult Cadastro()
+        {
+            ViewBag.admin = HttpContext.Session.GetString("Admin")!;
+
+            ViewBag.Categorias = context.Categoria.ToList();
+            //retorna a view de cadastro:
+            return View();
+        }
+
+        //metodo para cadastrar o livro:
+        [Route("Cadastrar")]
+        public IActionResult Cadastrar(IFormCollection form)
+        {
+            Livro novoLivro = new Livro();
+
+            //O que o meu usuario escrevr no formulario sera atribuido ao novoLivro
+
+            novoLivro.Nome = form["Nome"].ToString();
+            novoLivro.Escritor = form["Escritor"].ToString();
+            novoLivro.Idioma = form["Idioma"].ToString();
+            novoLivro.Editora = form["Ediitora"].ToString();
+            novoLivro.Editora = form["Descrição"].ToString();
+
+            //img
+            context.Livro.Add(novoLivro);
+
+            context.SaveChanges();
+
+            return RedirectToAction("Cadastro");
+        }
+
+
+
 
         // [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         // public IActionResult Error()
