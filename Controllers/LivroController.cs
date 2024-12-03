@@ -52,6 +52,7 @@ namespace Bibliotec_mvc.Controllers
         [Route("Cadastrar")]
         public IActionResult Cadastrar(IFormCollection form)
         {
+            //PRIMEIRA PARTE: Cadastrar um livro na tabela 
             Livro novoLivro = new Livro();
 
             //O que o meu usuario escrevr no formulario sera atribuido ao novoLivro
@@ -61,15 +62,71 @@ namespace Bibliotec_mvc.Controllers
             novoLivro.Idioma = form["Idioma"].ToString();
             novoLivro.Editora = form["Ediitora"].ToString();
             novoLivro.Editora = form["Descrição"].ToString();
+            //Trabalhar com imagens
+                 // a parte de colocar imagem == 0
+            if(form.Files.Count > 0){
+            //Primeiro passo:
+                 //Armazenar 
+                var arquivo = form.Files[0];
 
-            //img
+            //Segundo passo:
+                //Criar variavel do caminho da minha pasta para colocar os livros
+                var pasta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/Livros");
+                //validaremos se a pasta que sera armazenada as imagens, existe. Caso nao exista, criaremos uma nova pasta
+                if(Directory.Exists(pasta)) {
+                    
+                    Directory.CreateDirectory(pasta);
+                }      
+            //Terceiro passo:
+                //criar a variavel para armazenar o caminho que meu arquivo estara, alem do nome dele 
+                var caminho = Path.Combine(pasta, arquivo.FileName);
+
+                using (var stream = new FileStream(caminho, FileMode.CreateNew) ) 
+                {
+                    //copiou o arquivo para o meu diretorio
+                    arquivo.CopyTo(stream);
+                }
+
+                novoLivro.Imagem = arquivo.FileName;
+
+            }else {
+                novoLivro.Imagem = "padrao.png";
+            }
+
+
+
+
+
+
+
+
+
             context.Livro.Add(novoLivro);
+            context.SaveChanges();
+
+            //Segunada Parte: e adicionar dentro da LivroCategoria sera atribuido ao novoLivro
+            //Lista as categorias
+            List<LivroCategoria> ListaLivroCategorias = new List<LivroCategoria>(); 
+
+            //Array que possui as categorias selecionadas pelo usuario
+            string [] categoriasSelecionadas = form["Categoria"].ToString().Split(',');
+
+            foreach (string categoria in categoriasSelecionadas){
+                //categoria possui a informação do id da categoria atual selecionada.
+                LivroCategoria livroCategoria = new LivroCategoria();
+                livroCategoria.CategoriaID = int.Parse(categoria);
+                livroCategoria.LivroID = novoLivro.LivroID;
+
+                ListaLivroCategorias.Add(livroCategoria);
+            }
+
+            //Peguei a coleção da listaLivroCategoias e coloquei na tabela livroCategoria
+            context.LivroCategoria.AddRange(ListaLivroCategorias);
 
             context.SaveChanges();
 
-            return RedirectToAction("Cadastro");
+            return LocalRedirect("/Cadastro");
         }
-
 
 
 
